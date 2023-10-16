@@ -1,0 +1,61 @@
+name: "gpt-review"
+description: "Review your PRs with a GPT Model from Azure Open AI"
+branding:
+  icon: "eye"
+  color: "gray-dark"
+inputs:
+  GITHUB_TOKEN:
+    description: "Derivative token for using the GitHub REST API"
+    required: true
+  AZURE_OPEN_AI_KEY:
+    description: "Key of custom Azure Open AI API"
+    required: true
+  AZURE_OPEN_AI_ENDPOINT:
+    description: "URL of custom Azure Open AI API"
+    required: true
+  AZURE_OPEN_AI_MODEL_DEPLOY_NAME:
+    description: "Model name of custom Azure Open AI API"
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/checkout@v4
+      with:
+        ref: ${{ github.event.pull_request.head.sha }}
+        fetch-depth: 2
+
+    - name: get diff
+      working-directory: .github/actions/auto-gpt-review2
+      shell: bash
+      run: |
+        gh pr diff ${{ github.event.number }} >> diff.txt
+      env:
+        GH_TOKEN: ${{ inputs.GITHUB_TOKEN }}
+
+    - uses: actions/setup-go@v4
+
+    - name: Install dependencies
+      shell: bash
+      working-directory: .github/actions/auto-gpt-review2
+      run: |
+        go mod download
+
+    - name: Review PR
+      working-directory: .github/actions/auto-gpt-review2
+      shell: bash
+      run: |
+        go run ./main.go >> result.md
+      env:
+        AZURE_OPEN_AI_KEY: ${{ inputs.AZURE_OPEN_AI_KEY || '' }}
+        AZURE_OPEN_AI_ENDPOINT: ${{ inputs.AZURE_OPEN_AI_ENDPOINT || '' }}
+        AZURE_OPEN_AI_MODEL_DEPLOY_NAME: ${{ inputs.AZURE_OPEN_AI_MODEL_DEPLOY_NAME || '' }}
+        GIT_DIFF_PATH: "./diff.txt"
+
+    - name: Create comment
+      working-directory: .github/actions/auto-gpt-review2
+      shell: bash
+      run: |
+        gh pr comment ${{ github.event.number }} -F "result.md"
+      env:
+        GH_TOKEN: ${{ inputs.GITHUB_TOKEN }}

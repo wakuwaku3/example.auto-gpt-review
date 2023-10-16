@@ -11,7 +11,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Auto GPT Review
-        uses: microsoft/gpt-review@v0.8.0
+        uses: ./.github/actions/auto-gpt-review/
         with:
           GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
           AZURE_OPENAI_API: "${{ secrets.AZURE_OPENAI_API }}"
