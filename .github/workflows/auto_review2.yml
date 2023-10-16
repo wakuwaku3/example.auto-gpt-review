@@ -1,0 +1,23 @@
+name: auto-review2
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  auto-review:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      repository-projects: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Auto GPT Review
+        uses: ./.github/actions/auto-gpt-review2/
+        with:
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+          AZURE_OPEN_AI_KEY: "${{ secrets.AZURE_OPEN_AI_KEY }}"
+          AZURE_OPEN_AI_ENDPOINT: "${{ secrets.AZURE_OPEN_AI_ENDPOINT }}"
+          AZURE_OPEN_AI_MODEL_DEPLOY_NAME: "${{ secrets.AZURE_OPEN_AI_MODEL_DEPLOY_NAME }}"
